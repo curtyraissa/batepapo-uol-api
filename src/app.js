@@ -19,8 +19,19 @@ mongoClient.connect()
 
 app.post("/participants", (request, response) => {
   const { name } = request.body
-  const novoParticipante = { name, lastStatus: Date.now() }
-  response.sendStatus(201);
+  if (!name || name=="") {
+    response.status(422).send("Todos os campos são obrigatórios!");
+    return;
+  }
+
+  const nomeExiste = db.collection("participants").findOne({ name });
+  if (nomeExiste) return res.sendStatus(409);
+
+  const promise = db.collection("participants").insertOne({name, lastStatus: Date.now()});
+  promise.then(() => res.sendStatus(201));
+  // promise.catch(() => res.sendStatus(500));
+
+  const message = db.collection("messages").insertOne({ from: name, to: 'Todos', text: 'entra na sala...', type: 'status', time: 'HH:mm:ss' });
 })
 
 app.get("/participants", (request, response) => {
