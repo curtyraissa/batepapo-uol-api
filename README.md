@@ -171,12 +171,12 @@ npm run dev
 mongod --dbpath ~/.mongo
 
 # matar a porta comando no MAC
-Kill -KILL 27017
-# ou
+kill -9 PID
+# exemplo
 kill -9 27017
 
 # listar as postar que estao sendo usada
-sudo lsof -i :27017
+lsof -i :5000
 ```
 
 
