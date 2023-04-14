@@ -55,20 +55,20 @@ app.get("/participants", (req, res) => {
       participants.then((participants) => res.status(200).send(participants))}     
 })
 
-app.post("/messages", (req, res) => {
+// app.post("/messages", (req, res) => {
 
   
-})
+// })
 
-app.get("/messages", (req, resp) => {
-
-  
-})
-
-app.post("/status", (req, resp) => {
+// app.get("/messages", (req, resp) => {
 
   
-})
+// })
+
+// app.post("/status", (req, resp) => {
+
+  
+// })
 
 const PORT = 5000;
 app.listen(PORT, () => { console.log(`servidor rodando na porta ${PORT}`) });
