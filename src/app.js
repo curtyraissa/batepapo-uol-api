@@ -26,8 +26,8 @@ app.post("/participants", (req, res) => {
 
   const validation = participantsSchema.validate(name, { abortEarly: false });
 
-  if (validation. error) {
-    response.status(422).send("Todos os campos são obrigatórios!");
+  if (validation.error) {
+    res.sendStatus(422);;
     return;
   }
 
@@ -55,10 +55,29 @@ app.get("/participants", (req, res) => {
       participants.then((participants) => res.status(200).send(participants))}     
 })
 
-// app.post("/messages", (req, res) => {
+app.post("/messages", (req, res) => {
+ const {to, text, type } = req.body;
+ const { user } = req.headers;
 
-  
-// })
+//  if(!user || !to || !text || !type)
+//   return res.sendStatus(422);
+ 
+const messageScheme = joi.object ({
+  from: joi.string().required(),
+  to: joi.string().required(),
+  text: joi.string().required(),
+  type:joi.string().required().valid("message", "private_message"),
+})
+
+const validation = messageScheme.validate(
+  {to, text, type, from: user}, {aboutEarly: false}
+)
+
+if (validation.error) {
+  res.sendStatus(422);
+  return;
+}
+})
 
 // app.get("/messages", (req, resp) => {
 
