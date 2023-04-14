@@ -38,13 +38,15 @@ app.post("/participants", (req, res) => {
   promise.then(() => res.sendStatus(201));
   promise.catch(() => res.sendStatus(500));
 
-  const messagemInicial = db.collection("messages").insertOne({ 
+  const mensagemInicial = db.collection("messages").insertOne({ 
     from: name, 
     to: 'Todos', 
     text: 'entra na sala...', 
     type: 'status', 
     time: 'HH:mm:ss' 
   });
+  mensagemInicial.then(() => res.sendStatus(201));
+  mensagemInicial.catch(() => res.sendStatus(500));
 })
 
 app.get("/participants", (req, res) => {
