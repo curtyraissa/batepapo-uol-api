@@ -1,22 +1,21 @@
 import express from "express";
 import cors from "cors";
+import { MongoClient } from "mongodb";
 // import dayjs from "dayjs";
 import dotenv from 'dotenv';
 dotenv.config();
-import { MongoClient } from "mongodb";
 import joi from 'joi';
 
 // const dayjs = require("dayjs");
 const app = express();
-
-app.use(cors());
 app.use(express.json());
+app.use(cors());
 
-const mongoClient = new MongoClient(process.env.DATABASE_URL);
 let db;
+const mongoClient = new MongoClient(process.env.DATABASE_URL);
 mongoClient.connect()
-  .then(() => { db = mongoClient.db();
-  }).catch((err) => console.log(err.message))
+  .then(() => db = mongoClient.db())
+  .catch((err) => console.log(err.message))
 
 app.post("/participants", (req, res) => {
   const { name } = req.body
@@ -39,7 +38,7 @@ app.post("/participants", (req, res) => {
   promise.then(() => res.sendStatus(201));
   promise.catch(() => res.sendStatus(500));
 
-  const message = db.collection("messages").insertOne({ 
+  const messagemInicial = db.collection("messages").insertOne({ 
     from: name, 
     to: 'Todos', 
     text: 'entra na sala...', 

@@ -164,6 +164,22 @@
 
 - [Deploy](após a correcao irei subir o front e fazer deploy).<br/>
 
+```zsh
+# iniciar servidor
+npm run dev
+# rodar banco
+mongod --dbpath ~/.mongo
+
+# matar a porta comando no MAC
+Kill -KILL 27017
+# ou
+kill -9 27017
+
+# listar as postar que estao sendo usada
+sudo lsof -i :27017
+```
+
+
 <hr/>
 
 ## 💬 &nbsp;Contact
