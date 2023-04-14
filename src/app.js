@@ -1,14 +1,13 @@
 import express from "express";
 import cors from "cors";
-import dayjs from "dayjs";
+// import dayjs from "dayjs";
 import dotenv from 'dotenv';
 dotenv.config();
 import { MongoClient } from "mongodb";
-import joi from 'joi'
+import joi from 'joi';
 
-const dayjs = require(dayjs);
+// const dayjs = require("dayjs");
 const app = express();
-const Joi = require(joi);
 
 app.use(cors());
 app.use(express.json());
@@ -19,8 +18,8 @@ mongoClient.connect()
   .then(() => { db = mongoClient.db();
   }).catch((err) => console.log(err.message))
 
-app.post("/participants", (request, response) => {
-  const { name } = request.body
+app.post("/participants", (req, res) => {
+  const { name } = req.body
 
   const participantsSchema = joi.object({
     name: joi.string().required(),
@@ -49,22 +48,25 @@ app.post("/participants", (request, response) => {
   });
 })
 
-app.get("/participants", (request, response) => {
+app.get("/participants", (req, res) => {
+    const participants = db.collection("/participants").find().toArray()
+    if(!participants){
+      participants.catch((err) => res.status(404).send([]))
+    } else {
+      participants.then((participants) => res.status(200).send(participants))}     
+})
+
+app.post("/messages", (req, res) => {
 
   
 })
 
-app.post("/messages", (request, response) => {
+app.get("/messages", (req, resp) => {
 
   
 })
 
-app.get("/messages", (request, response) => {
-
-  
-})
-
-app.post("/status", (request, response) => {
+app.post("/status", (req, resp) => {
 
   
 })
