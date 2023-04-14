@@ -52,7 +52,7 @@ app.get("/participants", (req, res) => {
     if(!participants){
       participants.catch((err) => res.status(404).send([]))
     } else {
-      participants.then((participants) => res.status(200).send(participants))}     
+      participants.then((participants) => res.status(201).send(participants))}     
 })
 
 app.post("/messages", (req, res) => {
