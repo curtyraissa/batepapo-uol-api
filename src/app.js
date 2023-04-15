@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import dotenv from 'dotenv';
 import joi from 'joi';
 
-const dayjs = require("dayjs");
+// const dayjs = require("dayjs");
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -62,12 +62,13 @@ app.post("/participants", async (req, res) => {
   res.sendStatus(201);
 })
 
-app.get("/participants", (req, res) => {
-  const participants = db.collection("/participants").find().toArray()
+app.get("/participants",async (req, res) => {
+  try {
+  const participants = await db.collection("/participants").find().toArray()
   if (!participants) {
-    participants.catch((err) => res.status(404).send([]))
-  } else {
-    participants.then((participants) => res.status(201).send(participants))
+    return res.status(404).send([])
+  } } catch (err) {
+    res.status(201).send(participants)
   }
 })
 
