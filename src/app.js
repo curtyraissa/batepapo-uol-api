@@ -29,7 +29,6 @@ const messageScheme = joi.object({
 
 app.post("/participants", async (req, res) => {
   const { name } = req.body
-
   const validation = participantsSchema.validate(name, { abortEarly: false });
 
   if (validation.error) {
@@ -43,13 +42,10 @@ app.post("/participants", async (req, res) => {
       res.sendStatus(409);
       return
     }
-
     await db.collection("participants").insertOne({
       name: name,
       lastStatus: Date.now()
     });
-    // .catch(() => res.sendStatus(500));
-
     await db.collection("messages").insertOne({
       from: name,
       to: 'Todos',
@@ -57,18 +53,26 @@ app.post("/participants", async (req, res) => {
       type: 'status',
       time: dayjs().format('HH:mm:ss')
     });
-    res.sendStatus(201);
-  } catch (err) { res.sendStatus(500).send(err.message) }
+  }
+
+  catch (err) {
+    res.sendStatus(500).send(err.message)
+  }
+  res.sendStatus(201);
 })
 
 app.get("/participants", async (req, res) => {
   try {
     const participants = await db.collection("/participants").find().toArray()
-    if (!participants) {
-      res.status(404).send([]);
-      return
-    } res.send(participants);
-  } catch (err) { res.status(500).send(err.message) }
+    res.send(participants);
+    // if (!participants) {
+    //   res.status(404).send([]);
+    //   return
+    // } res.send(participants);
+  }
+  catch (err) {
+    res.status(500).send(err.message) 
+  }
 })
 
 app.post("/messages", async (req, res) => {
