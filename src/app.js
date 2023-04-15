@@ -2,8 +2,8 @@ import express from "express";
 import cors from "cors";
 import { MongoClient } from "mongodb";
 import dayjs from "dayjs";
-import dotenv from 'dotenv';
-import joi from 'joi';
+import dotenv from "dotenv";
+import joi from "joi";
 
 const app = express();
 app.use(express.json());
@@ -47,10 +47,10 @@ app.post("/participants", async (req, res) => {
     });
     await db.collection("messages").insertOne({
       from: name,
-      to: 'Todos',
-      text: 'entra na sala...',
-      type: 'status',
-      time: dayjs().format('HH:mm:ss')
+      to: "Todos",
+      text: "entra na sala...",
+      type: "status",
+      time: dayjs().format("HH:mm:ss")
     });
   }
 
