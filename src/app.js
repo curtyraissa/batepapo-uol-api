@@ -5,7 +5,6 @@ import dayjs from "dayjs";
 import dotenv from 'dotenv';
 import joi from 'joi';
 
-// const dayjs = require("dayjs");
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -41,12 +40,13 @@ app.post("/participants", async (req, res) => {
   try {
     const nomeExiste = await db.collection("participants").findOne({ name });
     if (nomeExiste) {
-      return res.sendStatus(409);
+      res.sendStatus(409);
+      return
     }
 
-    await db.collection("participants").insertOne({ 
-      name: name, 
-      lastStatus: Date.now() 
+    await db.collection("participants").insertOne({
+      name: name,
+      lastStatus: Date.now()
     });
     // .catch(() => res.sendStatus(500));
 
@@ -57,42 +57,47 @@ app.post("/participants", async (req, res) => {
       type: 'status',
       time: dayjs().format('HH:mm:ss')
     });
-  } catch (err) {res.sendStatus(500)}
-
-  res.sendStatus(201);
+    res.sendStatus(201);
+  } catch (err) { res.sendStatus(500).send(err.message) }
 })
 
-app.get("/participants",async (req, res) => {
+app.get("/participants", async (req, res) => {
   try {
-  const participants = await db.collection("/participants").find().toArray()
-  if (!participants) {
-    return res.status(404).send([])
-  } } catch (err) {
-    res.status(201).send(participants)
-  }
+    const participants = await db.collection("/participants").find().toArray()
+    if (!participants) {
+      res.status(404).send([]);
+      return
+    } res.send(participants);
+  } catch (err) { res.status(500).send(err.message) }
 })
 
 app.post("/messages", async (req, res) => {
-  const { to, text, type } = req.body;
-  const { user } = req.headers;
-
-  //  if(!user || !to || !text || !type)
-  //   return res.sendStatus(422);
-
-
-  const validation = messageScheme.validate(
-    { to, text, type, from: user }, { aboutEarly: false }
-  )
   try {
-    const nomeExiste = await db.collection("participants").findOne({name:user});
-  if (!nomeExiste) {
-    res.sendStatus(422);
-    return;
-  } await db.collection("messages").insertOne({from:user, to, text, type, time: dayjs().format("HH:mm:ss")})
-  res.sendStatus(201)
-} catch (err){
-  res.sendStatus(500);
-}
+    const { to, text, type } = req.body;
+    const { user } = req.headers;
+
+    const formato = { from: user, to, text, type, time: dayjs().format("HH:mm:ss") }
+    //  if(!user || !to || !text || !type)
+    //   return res.sendStatus(422);
+
+
+    const validation = messageScheme.validate(
+      formato, { aboutEarly: false }
+    )
+
+    if (validation.error) {
+      const err = validation.error.details.map((e) => e.formato)
+      res.sendStatus(422).send(err);
+      return;
+    } const naoExiste = await db.collection("participants").insertOne({ name: participants })
+    if (!naoExiste) {
+      res.sendStatus(409)
+      return
+    } await db.collection("messages").findOne(formato);
+    res.sendStatus(201)
+  } catch (err) {
+    res.sendStatus(500);
+  }
 })
 
 // app.get("/messages", (req, resp) => {
