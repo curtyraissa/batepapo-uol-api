@@ -72,7 +72,7 @@ app.get("/participants",async (req, res) => {
   }
 })
 
-app.post("/messages", (req, res) => {
+app.post("/messages", async (req, res) => {
   const { to, text, type } = req.body;
   const { user } = req.headers;
 
@@ -83,11 +83,16 @@ app.post("/messages", (req, res) => {
   const validation = messageScheme.validate(
     { to, text, type, from: user }, { aboutEarly: false }
   )
-
-  if (validation.error) {
+  try {
+    const nomeExiste = await db.collection("participants").findOne({name:user});
+  if (!nomeExiste) {
     res.sendStatus(422);
     return;
-  }
+  } await db.collection("messages").insertOne({from:user, to, text, type, time: dayjs().format("HH:mm:ss")})
+  res.sendStatus(201)
+} catch (err){
+  res.sendStatus(500);
+}
 })
 
 // app.get("/messages", (req, resp) => {
