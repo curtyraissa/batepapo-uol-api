@@ -31,10 +31,16 @@ app.post("/participants", async (req, res) => {
   const { name } = req.body
   const validation = participantsSchema.validate(name, { abortEarly: false });
 
-  if (!validation) {
-    res.sendStatus(422);
-    return
-  }
+  // if (!validation) {
+  //   res.sendStatus(422);
+  //   return
+  // }
+
+  if (validation.error) {
+		const errors = validation.error.details.map((type) => type.message);
+		res.status(422).send(errors);
+		return;
+	}
 
   try {
     const nomeExiste = await db.collection("participants").findOne({ name });
