@@ -31,9 +31,8 @@ app.post("/participants", async (req, res) => {
   const { name } = req.body
   const validation = participantsSchema.validate(name, { abortEarly: false });
 
-  if (validation.error) {
-    res.sendStatus(422);
-    return;
+  if (!validation) {
+    return res.sendStatus(422);
   }
 
   try {
