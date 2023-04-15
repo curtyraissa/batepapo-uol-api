@@ -32,7 +32,8 @@ app.post("/participants", async (req, res) => {
   const validation = participantsSchema.validate(name, { abortEarly: false });
 
   if (!validation) {
-    return res.sendStatus(422);
+    res.sendStatus(422);
+    return
   }
 
   try {
@@ -70,7 +71,7 @@ app.get("/participants", async (req, res) => {
     // } res.send(participants);
   }
   catch (err) {
-    res.status(500).send(err.message) 
+    res.status(500).send(err.message)
   }
 })
 
