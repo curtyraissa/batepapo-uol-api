@@ -17,7 +17,7 @@ mongoClient.connect()
   .catch((err) => console.log(err.message))
 
 const participantsSchema = joi.object({
-  name: joi.string().required(),
+  name: joi.string().min(3).required(),
 });
 
 const messageScheme = joi.object({
@@ -29,18 +29,12 @@ const messageScheme = joi.object({
 
 app.post("/participants", async (req, res) => {
   const { name } = req.body
-  const validation = participantsSchema.validate(name, { abortEarly: false });
+  const { validation } = participantsSchema.validate(name, { abortEarly: false });
 
-  if (!validation) {
+  if (validation) {
     res.sendStatus(422);
     return
   }
-
-  // if (validation.error) {
-  // 	const errors = validation.error.details.map((type) => type.message);
-  // 	res.status(422).send(errors);
-  // 	return;
-  // }
 
   try {
     const nomeExiste = await db.collection("participants").findOne({ name });
@@ -71,10 +65,6 @@ app.get("/participants", async (req, res) => {
   try {
     const participants = await db.collection("/participants").find().toArray()
     res.send(participants);
-    // if (!participants) {
-    //   res.status(404).send([]);
-    //   return
-    // } res.send(participants);
   }
   catch (err) {
     res.status(500).send(err.message)
@@ -93,14 +83,14 @@ app.post("/messages", async (req, res) => {
 
     const existentes = await db.collection("messages").findOne({ name: from })
     if (!existentes) {
-      return res.status(422).send("n existe")
+      return res.sendStatus(422)
     }
 
     const time = dayjs().format("HH:mm:ss")
     const message = { from, to, text, type, time }
 
     await db.collection("participants").insertOne(message)
-    return res.status(201).send()
+    return res.sendStatus(201)
 
   } catch (err) {
     return res.status(500).send(err.message)
@@ -126,15 +116,56 @@ app.post("/messages", async (req, res) => {
   //   }
 })
 
-// app.get("/messages", (req, resp) => {
+app.get("/messages", async (req, resp) => {
+  const { limit } = req.query;
+
+  if (limit && (isNaN(parseInt(limit)) || parseInt(limit) <= 0)) {
+    return resp.status(422).send({ error: "err" })
+  }
+
+  const messages = await db.collection('messages').find({
+    $or: [
+      { to: "Todos" },
+      { from: req.headers.user },
+      { to: req.headers.user },
+    ]
+  })
+    .sort({ time: -1 })
+    .limit(limit ? parseInt(limit) : 0)
+    .toArray();
+
+  resp.send(messages.reverse());
+
+})
 
 
-// })
+// post endpoint status
+app.post("/status", (req, resp) => {
+  const schema = joi.object({
+    User: joi.string().required()
+  });
 
-// app.post("/status", (req, resp) => {
+  const { error } = schema.validate(req.headers);
+  if (error) {
+    return resp.status(400).send(error.details[0].message);
+  }
 
+  const user = req.headers.User;
 
-// })
+  db.collection('participants').findOneAndUpdate(
+    { name: user },
+    { $set: { lastStatus: dayjs().unix() } }
+  ).then(result => {
+    if (!result.value) {
+      return resp.status(404).end();
+    }
+    return resp.status(200).end();
+  }).catch(err => {
+    console.error('erro status', err);
+    return resp.status(500).end();
+  });
+
+})
 
 //rodando servidor na porta 5000
 const PORT = 5000;
