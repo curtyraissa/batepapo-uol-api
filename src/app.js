@@ -25,6 +25,7 @@ const messageScheme = joi.object({
   to: joi.string().min(3).required(),
   text: joi.string().required(),
   type: joi.string().valid("message", "private_message").required(),
+  time: joi.required()
 })
 
 app.post("/participants", async (req, res) => {
@@ -75,59 +76,58 @@ app.get("/participants", async (req, res) => {
 
 // post messages
 app.post("/messages", async (req, res) => {
-  const { to, text, type } = req.body
-  const from = req.headers.user
-  const validation = messageScheme.validate({ from, to, text, type })
-
-  if (validation.error) {
-    const error = validation.error.details.map((detail) => detail.message)
-    return res.status(422).send(error)
+  const { body } = req
+  const User = req.headers.user
+  const message = {
+    from: User,
+    to: body.to,
+    text: body.text,
+    type: body.type,
+    time: dayjs().format("HH:mm:ss")
   }
+
   try {
-    const participant = await db.collection("participants").findOne({ name: from })
-    if (!participant) {
-      return res.sendStatus(422)
-    }
-    await db.collection("messages").insertOne({
-      from: user,
-      to,
-      text,
-      type,
-      time: dayjs(Date.now()).format("HH:mm:ss")
-    })
-    res.sendStatus(201)
-  } catch (err) {
-    res.status(500).send(err.message)
+    await messageScheme.validateAsync(message, { abortEarly: false })
+  } catch (error) {
+    return res.sendStatus(422)
+  }
+
+  try {
+    const participants = await db.collection("participants").findOne({ name: User })
+    if (!participants) return res.sendStatus(422)
+    await db.collection("messages").insertOne(message)
+    return res.sendStatus(201)
+  } catch (error) {
+    return res.sendStatus(422)
   }
 })
 
-app.get("/messages", async (req, resp) => {
-  const participant = req.headers.user
-
-  if (Number(req.query.limit) <= 0 || (isNaN(req.query.limit) && req.query.limit !== undefined)) {
-    return resp.sendStatus(422)
+// get messages
+app.get("/messages", async (req, res) => {
+  let { limit } = req.query
+  if (limit) {
+    if (limit <= 0 || isNaN(limit)) {
+      return res.sendStatus(422)
+    }
   }
+  const user = req.headers.user
   try {
-    const msg = await db.collection("messages").find({
-      $or: [
-        { from: participant },
-        { to: participant },
-        { to: "Todos" }
-      ]
+    const messages = await db.collection("messages").find({
+      $or: [{ from: user }, { to: user }, { to: 'Todos' }]
     }).toArray()
 
-    if (req.query.limit) {
-      return resp.status(200).send(msg.slice(-req.query.limit))
-    } resp.status(200).send(msg)
-  } catch (err) {
-    resp.status(500).send(err.message)
+    if (!limit) return res.send(messages.reverse())
+    res.send(messages.slice(-limit).reverse())
+
+  } catch (error) {
+    return res.sendStatus(422)
   }
 })
 
 // post endpoint status
 app.post("/status", async (req, res) => {
   const { user } = req.headers
-  
+
   if (!user) {
     return res.sendStatus(404)
   }
