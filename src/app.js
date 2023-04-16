@@ -146,6 +146,22 @@ app.post("/status", async (req, res) => {
   }
 })
 
+// remover user por tempo inativo
+setInterval(async () => {
+  const AFK = dayjs().subtract(10, 'seconds').valueOf();
+  await db.collection('participants').find({ lastStatus: { $lt: AFK } }).toArray().forEach(async (participant) => {
+    const message = {
+      from: participant.name,
+      to: 'Todos',
+      text: 'sai da sala...',
+      type: 'status',
+      time: dayjs().format('HH:mm:ss')
+    };
+    await db.collection('messages').insertOne(message);
+    await db.collection('participants').deleteOne({ _id: participant._id });
+  });
+}, 15000);
+
 //rodando servidor na porta 5000
 const PORT = 5000
 app.listen(PORT, () => { console.log(`servidor rodando na porta ${PORT}`) })
