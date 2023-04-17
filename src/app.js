@@ -17,11 +17,7 @@ mongoClient.connect()
   .catch((err) => console.log(err.message))
 
 const participantsSchema = joi.object({
-  name: joi.string().required().exist({
-    db: db,
-    collection: "participants",
-    fieldName: "name"
-  }),
+  name: joi.string().required(),
 })
 
 const messageScheme = joi.object({
@@ -34,9 +30,9 @@ const messageScheme = joi.object({
 
 app.post("/participants", async (req, res) => {
   const { name } = req.body
-  const validation = participantsSchema.validate(name)
+  const { validation }= participantsSchema.validate(name)
 
-  if (validation.error) { // se for string ou vazio retorna 422
+  if (validation) { // se for string ou vazio retorna 422
     res.sendStatus(422)
     return
   }
