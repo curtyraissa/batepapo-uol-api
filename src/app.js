@@ -17,12 +17,12 @@ mongoClient.connect()
   .catch((err) => console.log(err.message))
 
 const participantsSchema = joi.object({
-  name: joi.string().min(3).required(),
+  name: joi.string().required(),
 })
 
 const messageScheme = joi.object({
-  from: joi.string().min(3).required(),
-  to: joi.string().min(3).required(),
+  from: joi.string().required(),
+  to: joi.string().required(),
   text: joi.string().required(),
   type: joi.string().valid("message", "private_message").required(),
   time: joi.required()
