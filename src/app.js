@@ -158,7 +158,7 @@ setInterval(async () => {
       time: dayjs().format('HH:mm:ss')
     };
     await db.collection('messages').insertOne(message);
-    await db.collection('participants').deleteOne({ _id: participant._id });
+    await db.collection('participants').deleteOne({lastStatus: { $lt: AFK } });
   });
 }, 15000);
 
