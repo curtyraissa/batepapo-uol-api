@@ -113,7 +113,7 @@ app.get("/messages", async (req, res) => {
   const user = req.headers.user
   try {
     const messages = await db.collection("messages").find({
-      $or: [{ from: user }, { to: user }, { to: 'Todos' }]
+      $or: [{ from: user }, { to: user }, { to: "Todos" }]
     }).toArray()
 
     if (!limit) return res.send(messages.reverse())
@@ -148,19 +148,17 @@ app.post("/status", async (req, res) => {
 
 // remover user por tempo inativo
 setInterval(async () => {
-  const AFK = dayjs().subtract(10, 'seconds').valueOf();
-  await db.collection('participants').find({ lastStatus: { $lt: AFK } }).toArray().forEach(async (participant) => {
-    const message = {
-      from: participant.name,
-      to: 'Todos',
-      text: 'sai da sala...',
-      type: 'status',
-      time: dayjs().format('HH:mm:ss')
-    };
-    await db.collection('messages').insertOne(message);
-    await db.collection('participants').deleteOne({lastStatus: { $lt: AFK } });
-  });
-}, 15000);
+  const AFK = await db.collection("participants").find({ lastStatus: { $lt: (Date.now() - 10000) } }).toArray()
+  const msgs = []
+  if (AFK.length > 0) {
+    AFK.forEach(async (user) => {
+      const message = { from: user.name, to: "Todos", text: "sai da sala...", type: "status", time: dayjs().format("HH:mm:ss") }
+      msgs.push(message)
+    });
+  }
+  if (msgs.length > 0) { await db.collection("messages").insertMany(msgs) }
+  await db.collection("participants").deleteMany({ lastStatus: { $lt: (Date.now() - 10000) } })
+}, 15000)
 
 //rodando servidor na porta 5000
 const PORT = 5000
