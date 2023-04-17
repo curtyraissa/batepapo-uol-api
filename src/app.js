@@ -32,9 +32,8 @@ app.post("/participants", async (req, res) => {
   const { name } = req.body
   const { validation } = participantsSchema.validate(name, { abortEarly: false })
 
-  if (validation) {
-    res.sendStatus(422)
-    return
+  if (validation.error) { // se for string ou vazio retorna 422
+    return res.status(422).send(validation.error.details[0].message)
   }
 
   try {
